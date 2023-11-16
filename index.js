@@ -28,20 +28,18 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-app.post("/enviar-correo", upload.single("attachment"), (req, res) => {
+app.post("/enviar-correo", upload.array("attachment", 5), (req, res) => {
   const { to, subject, message } = req.body;
-
+  const attachments = req.files.map((file) => ({
+    filename: file.originalname,
+    content: file.buffer,
+  }));
   const mailOptions = {
     from: process.env.CLIENT_ID,
     to,
     subject,
     text: message,
-    attachments: [
-      {
-        filename: req.file.originalname,
-        content: req.file.buffer,
-      },
-    ],
+    attachments,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
