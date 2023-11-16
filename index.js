@@ -1,11 +1,24 @@
 import express from "express";
+import multer from "multer";
+import cors from "cors";
 import nodemailer from "nodemailer";
-import fs from "fs";
 import dotenv from "dotenv";
-dotenv.config();
 
+dotenv.config();
 const app = express();
-const port = 3000;
+
+app.use(
+  cors({
+    origin: "http://localhost",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+    optionsSuccessStatus: 204,
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -15,21 +28,20 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-app.use(express.json());
-
-app.post("/enviar-correo", (req, res) => {
-  console.log(req.body);
-  const { to, subject, html } = req.body;
+app.post("/enviar-correo", upload.single("attachment"), (req, res) => {
+  const { to, subject, message } = req.body;
 
   const mailOptions = {
     from: process.env.CLIENT_ID,
     to,
     subject,
-    html,
-    attachments: req.body.attachments.map((attachment) => ({
-      filename: attachment.filename,
-      content: fs.createReadStream(attachment.path),
-    })),
+    text: message,
+    attachments: [
+      {
+        filename: req.file.originalname,
+        content: req.file.buffer,
+      },
+    ],
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -43,6 +55,7 @@ app.post("/enviar-correo", (req, res) => {
   });
 });
 
+const port = 3000;
 app.listen(port, () => {
   console.log(`API escuchando en http://localhost:${port}`);
 });
