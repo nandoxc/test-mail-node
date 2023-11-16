@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Correo con Adjunto</title>
+</head>
+
+<body>
+    <h2>Formulario de Correo con Adjunto</h2>
+
+    <form id="emailForm" enctype="multipart/form-data">
+        <label for="to">Para:</label>
+        <input type="text" name="to" required><br>
+
+        <label for="subject">Asunto:</label>
+        <input type="text" name="subject" required><br>
+
+        <label for="message">Mensaje:</label><br>
+        <textarea name="message" rows="4" cols="50" required></textarea><br>
+
+        <label for="attachment">Adjunto:</label>
+        <input type="file" name="attachment" required><br>
+
+        <input type="submit" value="Enviar Correo" onclick="submitForm(event)">
+    </form>
+
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+
+            var form = document.getElementById("emailForm");
+            var formData = new FormData(form);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:3000/enviar-correo", true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        console.log("Solicitud exitosa");
+                    } else {
+                        console.error("Error en la solicitud:", xhr.statusText);
+                    }
+                }
+            };
+
+            // Enviar formData directamente, sin convertir a JSON
+            xhr.send(formData);
+        }
+    </script>
+</body>
+
+</html>
